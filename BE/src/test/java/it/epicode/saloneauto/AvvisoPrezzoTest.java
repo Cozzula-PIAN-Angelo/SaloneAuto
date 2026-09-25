@@ -1,10 +1,16 @@
 package it.epicode.saloneauto;
 
+import jakarta.mail.BodyPart;
+import jakarta.mail.MessagingException;
+import jakarta.mail.Multipart;
 import jakarta.mail.internet.MimeMessage;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -64,6 +70,57 @@ class AvvisoPrezzoTest extends IntegrationTestBase {
 
         mockMvc.perform(conToken(get("/api/avvisi/" + avvisoId), utente))
                 .andExpect(jsonPath("$.attivo").value(false));
+    }
+
+    @Test
+    void mailConFoto_allegaLaCopertinaInline_eMostraPrezzoVecchioENuovo() throws Exception {
+        String utente = nuovoUtente();
+        long autoId = creaAuto("Clio", "20000", "PUBBLICATO");
+        byte[] png = {(byte) 0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A, 0, 0, 0, 0};
+        mockMvc.perform(conToken(multipart("/api/admin/auto/" + autoId + "/immagini")
+                        .file(new MockMultipartFile("files", "foto.png", "image/png", png)), admin()))
+                .andExpect(status().isOk());
+        aggiungiPreferito(utente, autoId);
+        creaAvviso(utente, autoId, "18000");
+
+        cambiaPrezzo(autoId, "17500");
+        ArgumentCaptor<MimeMessage> captor = ArgumentCaptor.forClass(MimeMessage.class);
+        verify(mailSender, timeout(5000)).send(captor.capture());
+        MimeMessage mail = captor.getValue();
+        // Il mock non invia: saveChanges (fatto dal vero invio SMTP) scrive i Content-Type delle parti
+        mail.saveChanges();
+
+        List<BodyPart> parti = new ArrayList<>();
+        raccogliParti((Multipart) mail.getContent(), parti);
+        BodyPart html = parti.stream().filter(p -> tipo(p, "text/html")).findFirst().orElseThrow();
+        BodyPart foto = parti.stream().filter(p -> tipo(p, "image/png")).findFirst().orElseThrow();
+
+        assertThat(foto.getHeader("Content-ID")).containsExactly("<foto-auto>");
+        assertThat(foto.getInputStream().readAllBytes()).isEqualTo(png);
+        assertThat((String) html.getContent())
+                .contains("src=\"cid:foto-auto\"")
+                .containsPattern("line-through;\">20\\.000,00[\\s\\u00A0]€")
+                .containsPattern(">17\\.500,00[\\s\\u00A0]€")
+                .containsPattern("Risparmi <span>2\\.500,00[\\s\\u00A0]€");
+    }
+
+    private static void raccogliParti(Multipart multipart, List<BodyPart> parti) throws Exception {
+        for (int i = 0; i < multipart.getCount(); i++) {
+            BodyPart parte = multipart.getBodyPart(i);
+            if (parte.getContent() instanceof Multipart annidato) {
+                raccogliParti(annidato, parti);
+            } else {
+                parti.add(parte);
+            }
+        }
+    }
+
+    private static boolean tipo(BodyPart parte, String mime) {
+        try {
+            return parte.isMimeType(mime);
+        } catch (MessagingException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     @Test

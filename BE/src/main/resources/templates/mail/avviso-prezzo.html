@@ -1,21 +1,106 @@
 <!DOCTYPE html>
-<!--/* Solo th:text e th:href (fanno l'escape). Mai th:utext: nome e titolo sono testo, non HTML. */-->
+<!--/* Solo th:text, th:href, th:src e th:alt (fanno l'escape). Mai th:utext: nome e titolo sono testo, non HTML. */-->
+<!--/* Layout a tabelle e stili inline: molti client di posta ignorano <style>, flex e grid. */-->
 <html xmlns:th="http://www.thymeleaf.org" lang="it">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Il prezzo è sceso</title>
 </head>
-<body style="font-family: sans-serif; color: #222;">
-<p>Ciao <span th:text="${nome}">Mario</span>,</p>
-<p>
-    il prezzo di <strong th:text="${titoloAuto}">Fiat Panda</strong> è sceso a
-    <strong th:text="${#numbers.formatCurrency(prezzo)}">9.000,00 €</strong>,
-    sotto la tua soglia di <span th:text="${#numbers.formatCurrency(soglia)}">10.000,00 €</span>.
-</p>
-<p><a th:href="${linkAnnuncio}" href="#">Vedi l'annuncio</a></p>
-<p style="font-size: 12px; color: #666;">
-    Non vuoi più ricevere avvisi per quest'auto?
-    <a th:href="${linkDisattiva}" href="#">Disattiva l'avviso</a>.
-</p>
+<body style="margin: 0; padding: 0; background-color: #f4f2ed;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#f4f2ed"
+       style="background-color: #f4f2ed;">
+    <tr>
+        <td align="center" style="padding: 24px 12px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+                   style="max-width: 600px; background-color: #ffffff; border-radius: 8px; overflow: hidden;
+                          font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #1c1c20;">
+
+                <!-- Intestazione -->
+                <tr>
+                    <td bgcolor="#0b0b0d" style="background-color: #0b0b0d; padding: 20px 28px;">
+                        <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+                                     background-color: #c9a96e; vertical-align: middle;"></span>
+                        <span style="font-family: Georgia, 'Times New Roman', serif; font-size: 18px; font-weight: bold;
+                                     letter-spacing: 3px; color: #f2f0eb; vertical-align: middle; padding-left: 6px;">SALONE AUTO</span>
+                    </td>
+                </tr>
+
+                <!-- Foto dell'auto (allegata inline alla mail) -->
+                <tr th:if="${cidImmagine}">
+                    <td style="padding: 0; line-height: 0;">
+                        <a th:href="${linkAnnuncio}" href="#">
+                            <img th:src="|cid:${cidImmagine}|" th:alt="${titoloAuto}" src="cid:foto-auto" alt="Fiat Panda"
+                                 width="600"
+                                 style="display: block; width: 100%; max-width: 600px; height: auto; border: 0;">
+                        </a>
+                    </td>
+                </tr>
+
+                <!-- Testo e prezzi -->
+                <tr>
+                    <td style="padding: 28px 28px 8px 28px;">
+                        <p style="margin: 0 0 6px 0; font-size: 12px; font-weight: bold; letter-spacing: 2px;
+                                  text-transform: uppercase; color: #a0844f;">Il prezzo è sceso</p>
+                        <h1 th:text="${titoloAuto}"
+                            style="margin: 0 0 16px 0; font-family: Georgia, 'Times New Roman', serif; font-size: 26px;
+                                   line-height: 1.25; color: #0b0b0d;">Fiat Panda</h1>
+                        <p style="margin: 0; font-size: 15px; line-height: 1.6; color: #3a3a40;">
+                            Ciao <span th:text="${nome}">Mario</span>, un'auto che segui ha appena abbassato il prezzo.
+                        </p>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 16px 28px;">
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+                               style="background-color: #f8f6f1; border: 1px solid #e8e2d4; border-radius: 6px;">
+                            <tr>
+                                <td style="padding: 18px 20px;" valign="bottom">
+                                    <p style="margin: 0 0 4px 0; font-size: 12px; text-transform: uppercase;
+                                              letter-spacing: 1px; color: #8a877f;">Prima</p>
+                                    <p th:text="${#numbers.formatCurrency(prezzoVecchio)}"
+                                       style="margin: 0; font-size: 18px; color: #8a877f; text-decoration: line-through;">20.000,00 €</p>
+                                </td>
+                                <td style="padding: 18px 20px;" valign="bottom" align="right">
+                                    <p style="margin: 0 0 4px 0; font-size: 12px; text-transform: uppercase;
+                                              letter-spacing: 1px; color: #a0844f;">Ora</p>
+                                    <p th:text="${#numbers.formatCurrency(prezzoNuovo)}"
+                                       style="margin: 0; font-size: 28px; font-weight: bold; color: #0b0b0d;">17.000,00 €</p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" style="padding: 0 20px 18px 20px;">
+                                    <span style="display: inline-block; padding: 5px 12px; border-radius: 999px;
+                                                 background-color: #0b0b0d; color: #e5cca0; font-size: 13px; font-weight: bold;">
+                                        Risparmi <span th:text="${#numbers.formatCurrency(risparmio)}">3.000,00 €</span>
+                                    </span>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+
+                <!-- Pulsante -->
+                <tr>
+                    <td align="center" style="padding: 12px 28px 28px 28px;">
+                        <a th:href="${linkAnnuncio}" href="#"
+                           style="display: inline-block; padding: 14px 32px; border-radius: 6px; background-color: #c9a96e;
+                                  color: #0b0b0d; font-size: 15px; font-weight: bold; text-decoration: none;">Vedi l'annuncio</a>
+                    </td>
+                </tr>
+
+                <!-- Piè di pagina -->
+                <tr>
+                    <td style="padding: 18px 28px; border-top: 1px solid #ece8de; font-size: 12px; line-height: 1.6; color: #8a877f;">
+                        Ricevi questa mail perché hai impostato un avviso con soglia
+                        <span th:text="${#numbers.formatCurrency(soglia)}">18.000,00 €</span> per quest'auto.<br>
+                        Non vuoi più ricevere avvisi per quest'auto?
+                        <a th:href="${linkDisattiva}" href="#" style="color: #a0844f;">Disattiva l'avviso</a>.
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
 </body>
 </html>

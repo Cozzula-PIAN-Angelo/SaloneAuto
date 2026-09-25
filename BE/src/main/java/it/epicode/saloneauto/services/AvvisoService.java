@@ -33,7 +33,8 @@ public class AvvisoService {
 
     /** Dati già estratti dalle entity, pronti per la mail (che parte fuori transazione). */
     public record NotificaAvviso(Long avvisoId, Long autoId, String nome, String email, String titoloAuto,
-                                 BigDecimal prezzo, BigDecimal soglia, String tokenDisattivazione) {
+                                 BigDecimal prezzoVecchio, BigDecimal prezzoNuovo, BigDecimal soglia,
+                                 String nomeFileImmagine, String tokenDisattivazione) {
         @Override
         public String toString() {
             return "NotificaAvviso[avvisoId=" + avvisoId + "]";
@@ -105,9 +106,12 @@ public class AvvisoService {
                     String token = tokenService.generaToken();
                     avviso.setTokenDisattivazioneHash(tokenService.hash(token));
                     avviso.setUltimaNotifica(LocalDateTime.now());
+                    Auto auto = avviso.getAuto();
+                    // Le immagini sono ordinate per "ordine" (@OrderBy): la prima è la copertina
+                    String copertina = auto.getImmagini().isEmpty() ? null : auto.getImmagini().getFirst().getNomeFile();
                     return new NotificaAvviso(avviso.getId(), autoId, avviso.getUtente().getNome(),
-                            avviso.getUtente().getEmail(), avviso.getAuto().getTitolo(), prezzoNuovo,
-                            avviso.getSoglia(), token);
+                            avviso.getUtente().getEmail(), auto.getTitolo(), prezzoVecchio, prezzoNuovo,
+                            avviso.getSoglia(), copertina, token);
                 })
                 .toList();
     }

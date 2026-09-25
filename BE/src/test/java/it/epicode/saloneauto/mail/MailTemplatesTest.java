@@ -28,27 +28,43 @@ class MailTemplatesTest {
     @Test
     void avvisoPrezzo_ogniValoreVieneEscapato() {
         String html = mailTemplates.avvisoPrezzo(
-                "<img src=x onerror=alert(1)>",
+                "<svg onload=alert(1)>",
                 "Auto \"speciale\" & <i>rara</i>",
-                new BigDecimal("15000.00"), new BigDecimal("16000.00"),
+                new BigDecimal("17000.00"), new BigDecimal("15000.00"), new BigDecimal("16000.00"), "foto\" onerror=\"x",
                 "https://fe.it/auto/1\" onclick=\"x",
                 "https://fe.it/avvisi/disattiva?token=abc&x=<y>");
 
         assertThat(html)
-                .doesNotContain("<img", "<i>", "onclick=\"x", "<y>")
-                .contains("&lt;img src=x onerror=alert(1)&gt;")
+                .doesNotContain("<svg", "<i>", "onclick=\"x", "onerror=\"x", "<y>")
+                .contains("&lt;svg onload=alert(1)&gt;")
+                .contains("src=\"cid:foto&quot; onerror=&quot;x\"")
                 .contains("Auto &quot;speciale&quot; &amp; &lt;i&gt;rara&lt;/i&gt;")
                 .contains("href=\"https://fe.it/auto/1&quot; onclick=&quot;x\"")
                 .contains("token=abc&amp;x=&lt;y&gt;");
     }
 
     @Test
-    void avvisoPrezzo_prezziInFormatoItaliano() {
-        String html = mailTemplates.avvisoPrezzo("Anna", "Fiat Panda",
-                new BigDecimal("15000.00"), new BigDecimal("16000.50"), "https://fe.it/a", "https://fe.it/d");
+    void avvisoPrezzo_prezzoVecchioNuovoERisparmio_inFormatoItaliano() {
+        String html = mailTemplates.avvisoPrezzo("Anna", "Fiat Panda", new BigDecimal("18500.00"),
+                new BigDecimal("15000.00"), new BigDecimal("16000.50"), null, "https://fe.it/a", "https://fe.it/d");
 
         // Prima di € Java mette uno spazio non separabile (U+00A0), che \s non riconosce
-        assertThat(html).containsPattern("15\\.000,00[\\s\\u00A0]€").containsPattern("16\\.000,50[\\s\\u00A0]€");
+        assertThat(html)
+                .containsPattern("line-through;\">18\\.500,00[\\s\\u00A0]€")
+                .containsPattern(">15\\.000,00[\\s\\u00A0]€")
+                .containsPattern("Risparmi <span>3\\.500,00[\\s\\u00A0]€")
+                .containsPattern("16\\.000,50[\\s\\u00A0]€");
+    }
+
+    @Test
+    void avvisoPrezzo_fotoInlineSoloSePresente() {
+        String conFoto = mailTemplates.avvisoPrezzo("Anna", "Fiat Panda", new BigDecimal("2"), new BigDecimal("1"),
+                new BigDecimal("1"), "foto-auto", "https://fe.it/a", "https://fe.it/d");
+        String senzaFoto = mailTemplates.avvisoPrezzo("Anna", "Fiat Panda", new BigDecimal("2"), new BigDecimal("1"),
+                new BigDecimal("1"), null, "https://fe.it/a", "https://fe.it/d");
+
+        assertThat(conFoto).contains("src=\"cid:foto-auto\"", "alt=\"Fiat Panda\"");
+        assertThat(senzaFoto).doesNotContain("<img", "cid:");
     }
 
     @Test

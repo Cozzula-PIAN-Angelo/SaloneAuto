@@ -22,13 +22,20 @@ public class MailTemplates {
 
     private final ITemplateEngine templateEngine;
 
-    public String avvisoPrezzo(String nome, String titoloAuto, BigDecimal prezzo, BigDecimal soglia,
-                               String linkAnnuncio, String linkDisattiva) {
+    /**
+     * @param cidImmagine content-id della foto allegata inline alla mail, o null se l'annuncio
+     *                    non ha foto (in quel caso il blocco immagine non viene generato)
+     */
+    public String avvisoPrezzo(String nome, String titoloAuto, BigDecimal prezzoVecchio, BigDecimal prezzoNuovo,
+                               BigDecimal soglia, String cidImmagine, String linkAnnuncio, String linkDisattiva) {
         Context ctx = new Context(LOCALE);
         ctx.setVariable("nome", nome);
         ctx.setVariable("titoloAuto", titoloAuto);
-        ctx.setVariable("prezzo", prezzo);
+        ctx.setVariable("prezzoVecchio", prezzoVecchio);
+        ctx.setVariable("prezzoNuovo", prezzoNuovo);
+        ctx.setVariable("risparmio", prezzoVecchio.subtract(prezzoNuovo));
         ctx.setVariable("soglia", soglia);
+        ctx.setVariable("cidImmagine", cidImmagine);
         ctx.setVariable("linkAnnuncio", linkAnnuncio);
         ctx.setVariable("linkDisattiva", linkDisattiva);
         return templateEngine.process("mail/avviso-prezzo", ctx);
