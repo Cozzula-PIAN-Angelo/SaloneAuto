@@ -1,0 +1,87 @@
+# Blueprint Render: database, backend (Docker) e frontend (static site).
+# Le variabili con "sync: false" vanno inserite a mano nella dashboard al primo deploy.
+
+databases:
+  - name: salone-auto-db
+    plan: free
+    databaseName: salone_auto
+    user: salone_auto
+
+services:
+  - type: web
+    name: salone-auto-be
+    runtime: docker
+    plan: free
+    dockerContext: ./BE
+    dockerfilePath: ./BE/Dockerfile
+    healthCheckPath: /api/auto
+    buildFilter:
+      paths:
+        - BE/**
+    envVars:
+      - key: DB_HOST
+        fromDatabase:
+          name: salone-auto-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: salone-auto-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: salone-auto-db
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: salone-auto-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: salone-auto-db
+          property: password
+      - key: JWT_SECRET
+        generateValue: true
+      # URL del frontend: CORS e link nelle mail (senza "/" finale)
+      - key: FRONTEND_URL
+        value: https://salone-auto-fe.onrender.com
+      - key: MAIL_HOST
+        sync: false
+      - key: MAIL_PORT
+        sync: false
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
+      - key: MAIL_FROM
+        sync: false
+      - key: AUTODEV_API_KEY
+        sync: false
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+
+  - type: web
+    name: salone-auto-fe
+    runtime: static
+    buildCommand: cd FE && npm ci && npm run build
+    staticPublishPath: ./FE/dist
+    buildFilter:
+      paths:
+        - FE/**
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+    # Il FE chiama /api e /uploads con percorsi relativi, come col proxy di Vite in sviluppo:
+    # qui li inoltra al backend, così per il browser resta tutto sulla stessa origine.
+    routes:
+      - type: rewrite
+        source: /api/*
+        destination: https://salone-auto-be.onrender.com/api/*
+      - type: rewrite
+        source: /uploads/*
+        destination: https://salone-auto-be.onrender.com/uploads/*
+      # Fallback della SPA: le rotte di React Router servono index.html
+      - type: rewrite
+        source: /*
+        destination: /index.html
