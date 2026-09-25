@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<!--/* Solo th:text e th:href (fanno l'escape). Mai th:utext: nome e titolo sono testo, non HTML. */-->
+<html xmlns:th="http://www.thymeleaf.org" lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Il prezzo è sceso</title>
+</head>
+<body style="font-family: sans-serif; color: #222;">
+<p>Ciao <span th:text="${nome}">Mario</span>,</p>
+<p>
+    il prezzo di <strong th:text="${titoloAuto}">Fiat Panda</strong> è sceso a
+    <strong th:text="${#numbers.formatCurrency(prezzo)}">9.000,00 €</strong>,
+    sotto la tua soglia di <span th:text="${#numbers.formatCurrency(soglia)}">10.000,00 €</span>.
+</p>
+<p><a th:href="${linkAnnuncio}" href="#">Vedi l'annuncio</a></p>
+<p style="font-size: 12px; color: #666;">
+    Non vuoi più ricevere avvisi per quest'auto?
+    <a th:href="${linkDisattiva}" href="#">Disattiva l'avviso</a>.
+</p>
+</body>
+</html>
