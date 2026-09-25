@@ -1,0 +1,108 @@
+@import 'tailwindcss';
+
+/* Design system "Salone Auto Premium Dark" — token presi dagli HTML del progetto Stitch.
+   Si usano come utility Tailwind: bg-bg, bg-surface, bg-card, border-line, text-gold, text-muted… */
+@theme {
+  --color-bg: #0b0b0d;
+  --color-surface: #141417;
+  --color-card: #1c1c20;
+  --color-well: #18181d; /* campi del pannello admin */
+  --color-deep: #101013; /* barre secondarie admin */
+  --color-line: #2a2a2f;
+  --color-line-strong: #38383f;
+  --color-gold: #c9a96e;
+  --color-gold-hover: #d8be8a;
+  --color-gold-soft: #e5cca0;
+  --color-ink: #f2f0eb;
+  --color-muted: #9a9892;
+  --color-faint: #63615a;
+
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-bg font-sans text-ink antialiased selection:bg-gold selection:text-bg;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 2px;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-bg);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-line);
+    border-radius: 2px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-gold);
+  }
+
+  input[type='range'] {
+    accent-color: var(--color-gold);
+  }
+}
+
+/* Primitive ricorrenti in tutte le schermate Stitch */
+@layer components {
+  .etichetta {
+    @apply mb-1.5 block text-[11px] font-medium tracking-wider text-muted uppercase;
+  }
+
+  .campo {
+    @apply w-full rounded-sm border border-line bg-card px-3 py-2.5 text-xs text-ink transition-colors placeholder:text-muted/50 focus:border-gold focus:ring-1 focus:ring-gold focus:outline-none disabled:opacity-60;
+  }
+
+  .btn-oro {
+    @apply inline-flex items-center justify-center gap-2 rounded-sm bg-gold px-5 py-3 text-xs font-semibold tracking-widest text-bg uppercase shadow-md transition-all duration-200 hover:bg-gold-hover active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .btn-linea {
+    @apply inline-flex items-center justify-center gap-2 rounded-sm border border-line px-5 py-3 text-xs font-medium tracking-widest text-ink uppercase transition-all duration-200 hover:border-gold hover:text-gold disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .kicker {
+    @apply text-[11px] font-medium tracking-[0.25em] text-gold uppercase;
+  }
+}
+
+/* Material Symbols (stesso set di icone del design Stitch) */
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  vertical-align: middle;
+  -webkit-font-smoothing: antialiased;
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 300,
+    'GRAD' 0,
+    'opsz' 24;
+}
+
+.material-symbols-outlined.piena {
+  font-variation-settings:
+    'FILL' 1,
+    'wght' 300,
+    'GRAD' 0,
+    'opsz' 24;
+}
