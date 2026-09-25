@@ -18,6 +18,17 @@ Per Gmail: `MAIL_HOST=smtp.gmail.com`, porta 587, `MAIL_PASSWORD` = una *passwor
 
 Test: `mvn test`
 
+## Account admin di prova
+
+Con i valori di `.env.example` il backend crea al primo avvio questo amministratore:
+
+| Email | Password |
+|---|---|
+| `admin.test@salone.local` | `Salone-b6JA5qKo` |
+
+Dal frontend: accedi su `/accedi` e si apre il pannello `/admin`. Per un utente normale basta
+registrarsi da `/registrati`.
+
 ## Ruoli
 
 - **Visitatore**: cerca e consulta gli annunci pubblicati.
