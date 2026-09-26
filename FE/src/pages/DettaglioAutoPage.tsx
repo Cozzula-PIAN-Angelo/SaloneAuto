@@ -23,8 +23,10 @@ export default function DettaglioAutoPage() {
   const [vinCopiato, setVinCopiato] = useState(false)
 
   useEffect(() => {
+    let annullato = false
     setAuto(null)
     setErrore(null)
+    setSimili([])
     setFotoAttiva(0)
     if (!Number.isInteger(autoId) || autoId <= 0) {
       setErrore(new ApiError(404, 'Annuncio non trovato'))
@@ -33,16 +35,20 @@ export default function DettaglioAutoPage() {
     autoApi
       .dettaglio(autoId)
       .then((a) => {
+        if (annullato) return
         setAuto(a)
         window.scrollTo({ top: 0 })
         // "Potrebbero interessarti": stessa marca, escluso l'annuncio corrente.
         // Sezione accessoria: se fallisce semplicemente non compare.
         autoApi
           .cerca({ marca: a.marca, dimensione: 4 })
-          .then((p) => setSimili(p.contenuto.filter((s) => s.id !== a.id).slice(0, 3)))
-          .catch(() => setSimili([]))
+          .then((p) => !annullato && setSimili(p.contenuto.filter((s) => s.id !== a.id).slice(0, 3)))
+          .catch(() => !annullato && setSimili([]))
       })
-      .catch(setErrore)
+      .catch((e) => !annullato && setErrore(e))
+    return () => {
+      annullato = true
+    }
   }, [autoId])
 
   if (errore && !auto) {

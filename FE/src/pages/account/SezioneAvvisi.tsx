@@ -1,35 +1,28 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { autoApi, avvisiApi } from '../../api/endpoints'
-import type { AutoResponse, AvvisoResponse } from '../../api/types'
+import { avvisiApi } from '../../api/endpoints'
+import type { AvvisoResponse } from '../../api/types'
 import AlertErrore from '../../components/AlertErrore'
 import Caricamento from '../../components/Caricamento'
 import FotoAuto from '../../components/FotoAuto'
 import Icona from '../../components/Icona'
+import { usePreferiti } from '../../preferiti/PreferitiContext'
 import { formatData, formatPrezzo } from '../../utils/format'
 import { primaImmagine } from '../../utils/immagini'
 
 export default function SezioneAvvisi() {
+  const { preferiti } = usePreferiti()
   const [avvisi, setAvvisi] = useState<AvvisoResponse[] | null>(null)
-  // L'AvvisoResponse non ha la foto: le auto si caricano a parte (solo per la miniatura)
-  const [auto, setAuto] = useState<Record<number, AutoResponse>>({})
   const [errore, setErrore] = useState<unknown>(null)
   const [inModifica, setInModifica] = useState<number | null>(null)
   const [bozzaSoglia, setBozzaSoglia] = useState('')
 
+  // L'AvvisoResponse non ha la foto; il backend accetta un avviso solo su un'auto
+  // già nei preferiti, quindi l'AutoResponse per la miniatura è già caricata lì.
+  const autoPerId = useMemo(() => new Map(preferiti.map((p) => [p.auto.id, p.auto])), [preferiti])
+
   useEffect(() => {
-    avvisiApi
-      .elenco()
-      .then((lista) => {
-        setAvvisi(lista)
-        const ids = [...new Set(lista.map((a) => a.autoId))]
-        Promise.allSettled(ids.map((id) => autoApi.dettaglio(id))).then((esiti) => {
-          const mappa: Record<number, AutoResponse> = {}
-          esiti.forEach((e) => e.status === 'fulfilled' && (mappa[e.value.id] = e.value))
-          setAuto(mappa)
-        })
-      })
-      .catch(setErrore)
+    avvisiApi.elenco().then(setAvvisi).catch(setErrore)
   }, [])
 
   const sostituisci = (a: AvvisoResponse) => setAvvisi((prev) => prev?.map((x) => (x.id === a.id ? a : x)) ?? null)
@@ -103,7 +96,7 @@ export default function SezioneAvvisi() {
               </thead>
               <tbody className="divide-y divide-line/60 text-xs">
                 {avvisi.map((a) => {
-                  const dettaglio = auto[a.autoId]
+                  const dettaglio = autoPerId.get(a.autoId)
                   const differenza = a.prezzoAttuale - a.soglia
                   return (
                     <tr key={a.id} className="transition-colors hover:bg-card/40">

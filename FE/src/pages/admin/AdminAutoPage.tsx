@@ -155,7 +155,7 @@ export default function AdminAutoPage() {
           <input
             name="q"
             defaultValue={q}
-            placeholder="Cerca per titolo, marca o modello..."
+            placeholder="Cerca nel titolo o nella descrizione..."
             className="w-full rounded border border-line bg-surface py-1.5 pr-4 pl-9 text-xs text-ink placeholder-muted/70 transition-colors focus:border-gold focus:outline-none"
           />
         </form>
